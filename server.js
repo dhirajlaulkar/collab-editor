@@ -2,9 +2,19 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const cors = require('cors');
+const path = require('path');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
+
+// Serve static files from the React build directory in production
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, 'client/build')));
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'client/build/index.html'));
+    });
+}
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
@@ -39,7 +49,7 @@ wss.on('connection', (ws) => {
     });
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });

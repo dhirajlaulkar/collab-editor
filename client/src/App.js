@@ -6,7 +6,10 @@ function App() {
     const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        const newSocket = new WebSocket('ws://localhost:5000');
+        const wsUrl = process.env.NODE_ENV === 'production'
+            ? `wss://${window.location.host}`
+            : 'ws://localhost:5000';
+        const newSocket = new WebSocket(wsUrl);
         setSocket(newSocket);
 
         newSocket.onopen = () => {
