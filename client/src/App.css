@@ -4,12 +4,29 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #f0f0f0;
+  background-color: #fefefe;
+  text-align: center;
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-h1 {
+/* h1 {
   margin-bottom: 21px;
   color: black;
+} */
+
+.App h1 {
+  color: #333333;
+  margin-bottom: 20px;
+}
+
+.status-bar {
+  margin-bottom: 15px;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #79f061;
+  font-size: 14px;
 }
 
 textarea {
@@ -20,4 +37,18 @@ textarea {
   border: 1px solid #ccc;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 300px;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
 }

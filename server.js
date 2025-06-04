@@ -8,6 +8,11 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'healthy' });
+});
+
 // Serve static files from the React build directory in production
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'client/build')));

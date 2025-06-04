@@ -7,3 +7,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+    healthCheckPath: /health
+    autoDeploy: true
+    numInstances: 1
+    plan: starter
