@@ -10,56 +10,41 @@ function App() {
         const wsUrl = process.env.NODE_ENV === 'production'
             ? `wss://${window.location.host}`
             : 'ws://localhost:5000';
+
+        const newSocket = new WebSocket(wsUrl);
         
-        let retryCount = 0;
-        const maxRetries = 3;
-        
-        const connectWebSocket = () => {
-            const newSocket = new WebSocket(wsUrl);
-            
-            newSocket.onopen = () => {
-                console.log('WebSocket connection established');
-                setConnectionStatus("connected");
-                retryCount = 0;
-            };
-
-            newSocket.onclose = () => {
-                console.log('WebSocket connection closed');
-                setConnectionStatus("disconnected");
-                if (retryCount < maxRetries) {
-                    retryCount++;
-                    console.log(`Reconnecting (${retryCount}/${maxRetries})...`);
-                    setTimeout(connectWebSocket, 3000);
-                }
-            };
-
-            newSocket.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                setConnectionStatus("error");
-            };
-
-            newSocket.onmessage = (event) => {
-                try {
-                    const message = JSON.parse(event.data);
-                    if (message.type === 'init') {
-                        setDocument(message.data);
-                    } else if (message.type === 'update') {
-                        setDocument(message.data);
-                    }
-                } catch (error) {
-                    console.error('Error parsing message:', error);
-                }
-            };
-
-            setSocket(newSocket);
-
-            return newSocket;
+        newSocket.onopen = () => {
+            console.log('WebSocket connection established');
+            setConnectionStatus("connected");
         };
 
-        const ws = connectWebSocket();
+        newSocket.onclose = () => {
+            console.log('WebSocket connection closed');
+            setConnectionStatus("disconnected");
+        };
+
+        newSocket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            setConnectionStatus("error");
+        };
+
+        newSocket.onmessage = (event) => {
+            try {
+                const message = JSON.parse(event.data);
+                if (message.type === 'init') {
+                    setDocument(message.data);
+                } else if (message.type === 'update') {
+                    setDocument(message.data);
+                }
+            } catch (error) {
+                console.error('Error parsing message:', error);
+            }
+        };
+
+        setSocket(newSocket);
 
         return () => {
-            ws.close();
+            newSocket.close();
         };
     }, []);
 
