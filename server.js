@@ -1,6 +1,6 @@
 const express = require('express');
 const http = require('http');
-const WebSocket = require('ws');
+const { Server } = require('socket.io');
 const cors = require('cors');
 const path = require('path');
 const TextOperation = require('./server/TextOperation');
@@ -23,32 +23,32 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const io = new Server(server, {
+    cors: {
+        origin: process.env.NODE_ENV === 'production' ? undefined : "http://localhost:3000",
+        methods: ["GET", "POST"]
+    }
+});
 
 let document = ""; // Store the document content
 
-wss.on('connection', (ws) => {
+io.on('connection', (socket) => {
     console.log('New client connected');
 
     // Send the current document state to the new client
-    ws.send(JSON.stringify({ type: 'init', data: document }));ws.on('message', (message) => {
-        try {            const parsedMessage = JSON.parse(message);
-            if (parsedMessage.type === 'update') {
-                document = parsedMessage.data;
-                  // Broadcast the update to all connected clients
-                wss.clients.forEach((client) => {
-                    if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({ type: 'update', data: document }));
-                    }
-                });
-                
-            }
+    socket.emit('init', { data: document });
+
+    socket.on('update', (data) => {
+        try {
+            document = data;
+            // Broadcast the update to all connected clients
+            io.emit('update', { data: document });
         } catch (error) {
-            console.error('Error parsing message:', error);
+            console.error('Error handling update:', error);
         }
     });
 
-    ws.on('close', () => {
+    socket.on('disconnect', () => {
         console.log('Client disconnected');
     });
 });

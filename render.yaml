@@ -2,12 +2,20 @@ services:
   - type: web
     name: collab-editor
     env: node
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && cd client && npm install && npm run build && cd ..
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
     healthCheckPath: /health
     autoDeploy: true
     numInstances: 1
     plan: starter
+    buildFilter:
+      paths:
+        - client/**
+        - server/**
+        - package.json
+        - server.js

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 import './App.css';
 
 function App() {
@@ -7,52 +8,55 @@ function App() {
     const [connectionStatus, setConnectionStatus] = useState("disconnected");
 
     useEffect(() => {
-        const wsUrl = process.env.NODE_ENV === 'production'
-            ? `wss://${window.location.host}`
-            : 'ws://localhost:5000';
+        const socketUrl = process.env.NODE_ENV === 'production'
+            ? undefined // will connect to same host
+            : 'http://localhost:5000';
 
-        const newSocket = new WebSocket(wsUrl);
+        const newSocket = io(socketUrl);
         
-        newSocket.onopen = () => {
-            console.log('WebSocket connection established');
+        newSocket.on('connect', () => {
+            console.log('Socket.IO connection established');
             setConnectionStatus("connected");
-        };
+        });
 
-        newSocket.onclose = () => {
-            console.log('WebSocket connection closed');
+        newSocket.on('disconnect', () => {
+            console.log('Socket.IO connection closed');
             setConnectionStatus("disconnected");
-        };
+        });
 
-        newSocket.onerror = (error) => {
-            console.error('WebSocket error:', error);
+        newSocket.on('connect_error', (error) => {
+            console.error('Socket.IO error:', error);
             setConnectionStatus("error");
-        };
+        });
 
-        newSocket.onmessage = (event) => {
+        newSocket.on('init', (message) => {
             try {
-                const message = JSON.parse(event.data);
-                if (message.type === 'init') {
-                    setDocument(message.data);
-                } else if (message.type === 'update') {
-                    setDocument(message.data);
-                }
+                setDocument(message.data);
             } catch (error) {
-                console.error('Error parsing message:', error);
+                console.error('Error handling init message:', error);
             }
-        };
+        });
+
+        newSocket.on('update', (message) => {
+            try {
+                setDocument(message.data);
+            } catch (error) {
+                console.error('Error handling update message:', error);
+            }
+        });
 
         setSocket(newSocket);
 
         return () => {
-            newSocket.close();
+            newSocket.disconnect();
         };
     }, []);
 
     const handleChange = (e) => {
         const newDocument = e.target.value;
         setDocument(newDocument);
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ type: 'update', data: newDocument }));
+        if (socket && socket.connected) {
+            socket.emit('update', newDocument);
         }
     };
 
